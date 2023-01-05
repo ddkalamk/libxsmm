@@ -122,7 +122,7 @@ int find_unique(EmbeddingInOut *eio)
 
   std::vector<std::pair<int, int>> tmpBuf(NS);
 #pragma omp parallel for
-  for(int i = 0; i < N; i++) {
+  for (int i = 0; i < N; i++) {
     int start = eio->offsets[i];
     int end = eio->offsets[i+1];
     for (int j = start; j < end; j++) {
@@ -145,7 +145,7 @@ int find_unique(EmbeddingInOut *eio)
     }
   }
   num_uniq[0] += 1;
-  for(int i = 1; i < max_thds; i++)
+  for (int i = 1; i < max_thds; i++)
     num_uniq[i] += num_uniq[i-1];
   int U = num_uniq[max_thds-1];
   return U;
@@ -164,7 +164,7 @@ void allocate_buffers_and_generte_rnd_input(int N, int P, double alpha, Embeddin
   eio->gradout = (DTyp*)my_malloc(N * E * sizeof(DTyp), alignment);
 
   eio-> offsets[0] = 0;
-  for(int i = 1; i <= N; i++) {
+  for (int i = 1; i <= N; i++) {
     double randval;
     drand48_r(&rand_buf, &randval);
     int cp = (int)(randval * P * 2);
@@ -262,7 +262,7 @@ double get_checksum(DTyp *buf, size_t sz)
 {
   double sum = 0.0;
 #pragma omp parallel for reduction(+:sum)
-  for(size_t i = 0; i < sz; i++) {
+  for (size_t i = 0; i < sz; i++) {
     sum += buf[i];
   }
   return sum;
@@ -284,7 +284,7 @@ int main(int argc, char * argv[]) {
   my_rank = dist_get_rank();
   my_size = dist_get_size();
 
-  if(argc > 1 && strncmp(argv[1], "-h", 3) == 0) {
+  if (argc > 1 && strncmp(argv[1], "-h", 3) == 0) {
     printf("Usage: %s iters N E M S P alpha \n", argv[0]);
     printf("iters: Number of iterations (= %d)\n", iters);
     printf("N: Minibatch (= %d)\n", N);
@@ -299,13 +299,13 @@ int main(int argc, char * argv[]) {
 
   {
     int i = 1;
-    if(argc > i) iters = atoi(argv[i++]);
-    if(argc > i) N = atoi(argv[i++]);
-    if(argc > i) E = atoi(argv[i++]);
-    if(argc > i) M = atoi(argv[i++]);
-    if(argc > i) S = atoi(argv[i++]);
-    if(argc > i) P = atoi(argv[i++]);
-    if(argc > i) alpha = atof(argv[i++]);
+    if (argc > i) iters = atoi(argv[i++]);
+    if (argc > i) N = atoi(argv[i++]);
+    if (argc > i) E = atoi(argv[i++]);
+    if (argc > i) M = atoi(argv[i++]);
+    if (argc > i) S = atoi(argv[i++]);
+    if (argc > i) P = atoi(argv[i++]);
+    if (argc > i) alpha = atof(argv[i++]);
   }
 
   printf("Using: iters: %d N: %d E: %d M: %d S: %d P: %d alpha: %.3f\n", iters, N, E, M, S, P, alpha);
@@ -355,11 +355,11 @@ int main(int argc, char * argv[]) {
     A2Agdst = A2Agsrc;
   }
 
-  for(int i = 0; i < LS; i++)
+  for (int i = 0; i < LS; i++)
   {
     eb[i] = new EmbeddingBag(M, E);
     eb[i]->init();
-    for(int j = 0; j < iters; j++)
+    for (int j = 0; j < iters; j++)
     {
       eio[j][i] = new EmbeddingInOut();
       allocate_buffers_and_generte_rnd_input(N, P, alpha, eb[i], eio[j][i]);
@@ -406,11 +406,11 @@ int main(int argc, char * argv[]) {
     unpack_from_a2a(LS, N, E, eio[i], A2Agdst);
     double t5 = get_time();
 
-    for(int s = LS-1; s >= 0; s--) {
+    for (int s = LS-1; s >= 0; s--) {
       eb[s]->backward(N, eio[i][s]->NS, eio[i][s]->gradout, eio[i][s]->offsets, eio[i][s]->indices, eio[i][s]->grads);
     }
     double t6 = get_time();
-    for(int s = 0; s < LS; s++) {
+    for (int s = 0; s < LS; s++) {
       eb[s]->update(eio[i][s]->NS, eio[i][s]->grads, eio[i][s]->indices, -0.1, M, use_rtm);
     }
     double t7 = get_time();
@@ -436,7 +436,7 @@ int main(int argc, char * argv[]) {
   }
   double t1 = get_time();
 #ifdef VERIFY_CORRECTNESS
-  for(int s = 0; s < LS; s++) {
+  for (int s = 0; s < LS; s++) {
     double psum = get_checksum(eb[s]->weight_, (size_t)M*E);
     //my_printf("PSUM %d: %g\n", SS+s, psum);
     checksum += psum;
@@ -489,9 +489,9 @@ int main(int argc, char * argv[]) {
   print_rtm_stats();
 #endif
 
-  for(int i = 0; i < LS; i++)
+  for (int i = 0; i < LS; i++)
   {
-    for(int j = 0; j < iters; j++)
+    for (int j = 0; j < iters; j++)
     {
       free_buffers(eio[j][i]);
       delete eio[j][i];
